@@ -17,7 +17,7 @@ host's Arch package reconciler can consume. Two groups: `cli` (terminal binaries
 ```nix
 nixagent.distro = "cachyos";               # or "arch" (the default)
 nixagent.cli = [ "claude-code" "deepseek-harness" "gemini-cli" "grok-build" "muse-code" "openai-codex" "opencode" "omp" "qwen-code" ];
-nixagent.desktop = [ "chatgpt-desktop" "claude-desktop" ];
+nixagent.desktop = [ "chatgpt-desktop" "claude-desktop" "opencode-desktop" ];
 
 nixarch.packages.pacman =
   config.nixagent.archPackages ++ config.nixagent.runtimeArchPackages;
@@ -259,6 +259,7 @@ the mapping. Pointing a launcher at a package name is wrong for several entries.
 | `qwen-code` | `qwen-code` | `qwen` | Qwen standalone installer → `~/.local/bin/qwen` |
 | `chatgpt-desktop` | Arch: `chatgpt-desktop`; CachyOS: `chatgpt-desktop-bin` | `chatgpt` | — (vendor Linux packages, no per-user installer script) |
 | `claude-desktop` | `claude-desktop` | `claude-desktop` | — (vendor Linux packages, no per-user installer script) |
+| `opencode-desktop` | `opencode-desktop-bin` (every distro) | `opencode-desktop` | — (community-fork release .deb via AUR, no vendor package; re-check provenance on updates) |
 
 `omp` is the sharpest case and the reason the key is documented as naming the **tool**: the project
 calls itself `omp`, the AUR calls it `oh-my-pi-bin`, npm calls it `@oh-my-pi/pi-coding-agent`, and

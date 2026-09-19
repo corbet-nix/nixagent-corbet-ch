@@ -87,8 +87,8 @@ let
     "every catalogue group has a matching selection option on the module" =
       lib.all (g: (evalWith { }) ? ${g}) (lib.attrNames cat);
 
-    "every group contributes to \`selected\` -- selecting the whole catalogue resolves every entry (cli: 9, desktop: 2, total: 11)" =
-      lib.length archAll.selected == 11
+    "every group contributes to \`selected\` -- selecting the whole catalogue resolves every entry (cli: 9, desktop: 3, total: 12)" =
+      lib.length archAll.selected == 12
       && lib.length archAll.selected == allSelectable;
 
     "each group's option is typed to its OWN keys -- a name from another group (or a typo) is refused at eval time, not silently ignored" =
@@ -140,13 +140,18 @@ let
       && !(has (cachyAll.archPackages ++ cachyAll.aurPackages) "chatgpt-desktop");
 
     "repository lifts are scoped to their entries; DeepSeek Harness, grok-build, muse-code and omp remain AUR on CachyOS" =
-      sorted cachyAll.aurPackages == [ "deepseek-harness-bin" "grok-build" "muse-code-bin" "oh-my-pi-bin" ]
-      && sorted archAll.aurPackages == [ "chatgpt-desktop" "claude-code" "claude-desktop" "deepseek-harness-bin" "grok-build" "muse-code-bin" "oh-my-pi-bin" ];
+      sorted cachyAll.aurPackages == [ "deepseek-harness-bin" "grok-build" "muse-code-bin" "oh-my-pi-bin" "opencode-desktop-bin" ]
+      && sorted archAll.aurPackages == [ "chatgpt-desktop" "claude-code" "claude-desktop" "deepseek-harness-bin" "grok-build" "muse-code-bin" "oh-my-pi-bin" "opencode-desktop-bin" ];
 
     "DeepSeek Harness uses the current AUR binary package on both distros and publishes dsh, not its package name" =
       has archAll.aurPackages "deepseek-harness-bin"
       && has cachyAll.aurPackages "deepseek-harness-bin"
       && archAll.binaries.deepseek-harness == "dsh";
+
+    "opencode-desktop is AUR on every distro under its PACKAGE name, and publishes the opencode-desktop command" =
+      has archAll.aurPackages "opencode-desktop-bin" && has cachyAll.aurPackages "opencode-desktop-bin"
+      && !(has archAll.archPackages "opencode-desktop-bin") && !(has cachyAll.archPackages "opencode-desktop-bin")
+      && archAll.binaries.opencode-desktop == "opencode-desktop";
 
     "grok-build is AUR on every distro and publishes its actual grok command" =
       has archAll.aurPackages "grok-build" && has cachyAll.aurPackages "grok-build"
@@ -189,6 +194,7 @@ let
         qwen-code = "qwen";
         chatgpt-desktop = "chatgpt";
         claude-desktop = "claude-desktop";
+        opencode-desktop = "opencode-desktop";
       };
 
     # omp is the sharpest case in the catalogue: catalogue key `omp`, pacman name `oh-my-pi-bin`,

@@ -874,5 +874,33 @@
         nothing here loads a model locally.
       '';
     };
+
+    opencode-desktop = {
+      # AUR-only on EVERY distro, verified 2026-09-19:
+      #
+      #   archlinux.org package search   -> 0 results.
+      #   `pacman -Si opencode-desktop` / `-bin` -> no result (no CachyOS repo build either).
+      #   AUR RPC (`opencode-desktop-bin`) -> 1.18.31-1, current; source is the fork
+      #       github.com/anomalyco/opencode release .deb (linux-amd64/arm64), NOT an
+      #       official SST vendor package. Unlike chatgpt-desktop/claude-desktop above,
+      #       no vendor Linux package exists to point at.
+      #   package() installs launcher `/usr/bin/opencode-desktop` plus upstream
+      #       `ai.opencode.desktop` desktop entry (Exec rewritten to the wrapper).
+      arch = "opencode-desktop-bin";
+      binary = "opencode-desktop";
+      nixpkgs = null;
+      aur = true;
+
+      # No vendor installer path: the only delivery is the AUR package's fork .deb.
+      # The home plane does not unpack .debs into a home prefix.
+      upstream = null;
+
+      note = ''
+        OpenCode desktop client: sessions, provider keys, and agent runs in one window.
+        Catalogue key `opencode-desktop`; AUR package `opencode-desktop-bin` on every
+        distro; command `opencode-desktop`. Packaged from community-fork release assets,
+        not official vendor packages — re-check provenance before trusting updates.
+      '';
+    };
   };
 }
