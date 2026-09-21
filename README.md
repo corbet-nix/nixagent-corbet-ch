@@ -191,13 +191,13 @@ Full reasoning, including what each vendor installer actually does:
 
 Package delivery in this family is split by **domain**, and these clients had no owner.
 
-**Not [nixllm](https://github.com/julian-corbet/nixllm-corbet-ch).** That repo *serves* models — a
+**Not [nixllm](https://github.com/corbet-nix/nixllm-corbet-ch).** That repo *serves* models — a
 broker, an inference engine, a model store, a GPU. Everything here, `desktop` group included, is an
 HTTPS client that never loads a weight and has no opinion about a GPU. Same project space, opposite
 side of the wire, and a shared catalogue would mean one repo whose entries need two unrelated kinds
 of host to be useful.
 
-**Not [nixsh](https://github.com/julian-corbet/nixsh-corbet-ch)**, despite most of these being
+**Not [nixsh](https://github.com/corbet-nix/nixsh-corbet-ch)**, despite most of these being
 terminal tools. nixsh is universal *by construction* — every host has a shell and reaches for a
 terminal tool, which is exactly why that catalogue has no per-host story to build. These do not have that
 property and must not inherit it: a small production server has a shell and wants `ripgrep`, and
@@ -377,13 +377,13 @@ and removing the dry-run hook each trip exactly one named assertion.
 ## Related projects
 
 Part of the same independently-usable module family:
-[nixllm](https://github.com/julian-corbet/nixllm-corbet-ch) (the other side of the wire — serving
+[nixllm](https://github.com/corbet-nix/nixllm-corbet-ch) (the other side of the wire — serving
 models locally, where these only talk to remote ones),
-[nixsh](https://github.com/julian-corbet/nixsh-corbet-ch) (the universal terminal-tool catalogue
+[nixsh](https://github.com/corbet-nix/nixsh-corbet-ch) (the universal terminal-tool catalogue
 this repo is deliberately *not* part of), and
-[nixarch](https://github.com/julian-corbet/nixarch-corbet-ch) (the Arch package reconciler these
+[nixarch](https://github.com/corbet-nix/nixarch-corbet-ch) (the Arch package reconciler these
 lists are written for).
 
-## License
+## Licence
 
-MIT License &copy; 2026 Julian Corbet
+Outbound licence is `MIT OR Apache-2.0`. See `LICENSE-MIT` and `LICENSE-APACHE`; every source file carries `SPDX-License-Identifier: MIT OR Apache-2.0`.

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # Evaluates modules/nixagent.nix for real against `lib.evalModules` and asserts what it resolves --
 # the same "Nix inspecting Nix" tier as nixsh's checks/tools-eval.nix, and here for the same reason
 # that file states: `nix flake check` does NOT evaluate `systemManagerModules` on its own, so a

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # nixagent's cfetch plane, HOME side: the per-user surface the binary needs to actually act as a
 # session brain — the config file, the warm daemon, and the idempotent hook/MCP registration.
 # The BINARY arrives on the system plane (./cfetch.nix → the host's AUR reconciler) or from

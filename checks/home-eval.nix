@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # Evaluates ../modules/home.nix -- the UPSTREAM delivery plane -- against `lib.evalModules` with a
 # stub of the handful of home-manager options it writes to. Same technique nixmsg's own
 # checks/default.nix uses for its home module, and for the same reason: home-manager's option tree

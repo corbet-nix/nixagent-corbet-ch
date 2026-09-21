@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 {
   description = "nixagent — agentic AI clients (Claude, Codex, DeepSeek Harness, Gemini, Grok Build, Qwen Code, opencode, omp, and desktop clients), declared per host and delivered from pacman/AUR or the vendor's own mutable path, never nixpkgs";
 

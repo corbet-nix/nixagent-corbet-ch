@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # shellcheck shell=bash
 #
 # nixagent -- the UPSTREAM delivery mode, shell half. Defines one function and nothing else, so

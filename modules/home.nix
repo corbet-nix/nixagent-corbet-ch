@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 #
 # nixagent's HOME-MANAGER plane: the second delivery mode. Uses each selected tool's OWN upstream
 # delivery path, once, in the user's home and puts the result on PATH. Most entries run a vendor

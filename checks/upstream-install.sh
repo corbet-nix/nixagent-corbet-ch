@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # shellcheck shell=bash
 #
 # BEHAVIOUR test for ../lib/install-upstream.sh. Sources the real file and RUNS the real function;

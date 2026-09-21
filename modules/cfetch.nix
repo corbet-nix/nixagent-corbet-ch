@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # nixagent's cfetch plane, SYSTEM side: publishes the package name a host's own reconciler
 # consumes. Installs nothing itself — same "published, not wired" split ./nixagent.nix documents
 # for the catalogue lists, for the same reason: the host owns the one concatenation point.

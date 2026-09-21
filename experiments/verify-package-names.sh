@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # Reproduces the verification every `arch` name in lib/agents.nix was checked against before being
 # committed. Run it by hand after touching the catalogue -- repository membership is a fact about
 # the world, it changes without this repo changing, and no eval-time check can see it (that is

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 #
 # nixagent's policy module: the selection surface, the catalogue resolution, and the package-name
 # lists a host's own reconciler consumes. Installs nothing itself.

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # Evaluates ../modules/cfetch-home.nix against the small Home Manager surface it
 # writes. This keeps the registration ordering and service restart repair path
 # under `nix flake check` without adding Home Manager as a flake input.

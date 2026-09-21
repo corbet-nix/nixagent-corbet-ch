@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 #
 # The agent catalogue: clients for REMOTE frontier models -- one entry per selectable package,
 # naming it on each platform this repo is willing to install from. Two shapes today, `cli` (a

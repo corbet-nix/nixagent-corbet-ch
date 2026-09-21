@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # The only check in this repo that RUNS something rather than asserting about it.
 #
 # ./agents-eval.nix and ./home-eval.nix prove that the catalogue resolves and that the right call
