@@ -15,8 +15,9 @@ which keeps the prefix on a self-hosted instance):
   * agents: hired and approved when missing, then kept to their declared title, role, manager,
     adapter keys, permissions, heartbeat, Paperclip skills and instructions;
   * every agent, declared or not, kept to agentDefaults for its adapter type;
-  * API-key tool connections (created when missing) and company secrets (created, rotated when
-    their value changes; an HMAC in providerMetadata detects change without reading values).
+  * API-key tool connections (created when missing, their credential rotated when its value
+    changes) and company secrets (created, rotated when their value changes); an HMAC in the
+    secret's providerMetadata detects change without reading values back.
 Attention: problems nobody should have to go looking for become ONE issue each on the board of
 the attention company, updated while they last and closed when they are gone: sign-ins that
 have lapsed, agents bound to an AI connection, and skill changes waiting to be committed (that
@@ -225,12 +226,27 @@ def reconcile_connections(key, company, spec):
     connections = spec.get("connections", {})
     existing = {c["name"]: c for c in items(call("GET", f"/companies/{company}/tools/connections"), "connections")
                 if c.get("status") != "archived" and c.get("transport") != "runtime_auth"}
+    stored = None
     for want in connections.values():
-        if want["name"] in existing:
-            continue
         secret = os.environ.get(want["credentialEnv"])
         if not secret:
             say(key, f"connection {want['name']}: ${want['credentialEnv']} is not set; skipped")
+            continue
+        if want["name"] in existing:
+            # The connection reads its credential secret at version "latest", so rotating that
+            # secret is the whole rotation; an HMAC in its providerMetadata detects change.
+            ref = next((r for r in existing[want["name"]].get("credentialSecretRefs") or [] if r.get("configPath") == want["credentialField"]), None)
+            if ref is None:
+                continue
+            if stored is None:
+                stored = {x["id"]: x for x in items(call("GET", f"/companies/{company}/secrets"), "secrets")}
+            meta = (stored.get(ref["secretId"]) or {}).get("providerMetadata") or {}
+            mark = fingerprint(secret)
+            if meta.get("nixagentHmac") != mark:
+                def rotate(ref=ref, secret=secret, meta=meta, mark=mark):
+                    call("POST", f"/secrets/{ref['secretId']}/rotate", {"value": secret})
+                    call("PATCH", f"/secrets/{ref['secretId']}", {"providerMetadata": {**meta, "nixagentHmac": mark}})
+                change(key, f"rotate the credential of {want['name']}", rotate)
             continue
 
         def connect(want=want, secret=secret):
