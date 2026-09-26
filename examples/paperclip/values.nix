@@ -33,7 +33,8 @@
       attention = { company = "engineering"; commitAgent = "lead"; };
       secretEnv.EXAMPLE_GITHUB_TOKEN = { name = "paperclip-board"; key = "GITHUB_TOKEN"; };
     };
-    # A company without an id is created by the reconciler under its prefix, then renamed.
+    # A company without an id is created by the reconciler under its prefix, then renamed; its id
+    # is handed to the commit agent to record here.
     companies.office = { name = "Example Office"; issuePrefix = "OFF"; };
     companies.engineering = {
       id = "00000000-0000-0000-0000-000000000001";

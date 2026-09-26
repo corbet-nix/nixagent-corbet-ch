@@ -50,7 +50,11 @@ let
       id = mkOption {
         type = types.nullOr types.str;
         default = null;
-        description = "Paperclip id of an existing company. Without one, the reconciler matches by name and creates the company when missing.";
+        description = ''
+          Paperclip id of the company. The skill-library mount needs it, so a company declared
+          without one is created by the reconciler (or matched by name), and its id is handed to
+          the commit agent as an issue to record here.
+        '';
       };
       name = mkOption { type = types.str; };
       description = mkOption { type = types.nullOr types.str; default = null; };
@@ -114,7 +118,7 @@ in
       root = mkOption { type = types.str; description = "The shared knowledge store, at the same path inside the pod as on the hosts."; };
       hostPath = mkOption { type = types.str; };
       skills = mkOption { type = types.str; description = "The one skill library, inside the pod."; };
-      skillsHostPath = mkOption { type = types.str; description = "The same library on the node; every company's managed-skill directory resolves to it."; };
+      skillsHostPath = mkOption { type = types.str; description = "The same library on the node, bind-mounted as each declared company's managed-skill directory."; };
       claudeInstructions = mkOption { type = types.nullOr types.lines; default = null; };
       claudeMemoryDir = mkOption { type = types.nullOr types.str; default = null; };
       codexInstructions = mkOption { type = types.nullOr types.lines; default = null; };
@@ -151,6 +155,11 @@ in
       attention = {
         company = mkOption { type = types.nullOr types.str; default = null; description = "Key of the company whose board receives attention issues (expired logins, stray AI bindings, uncommitted skills), or null for none."; };
         commitAgent = mkOption { type = types.nullOr types.str; default = null; description = "Agent key (in that company) assigned to commit skill changes made through Paperclip."; };
+        declarationHint = mkOption {
+          type = types.str;
+          default = "the file that declares nixagent.paperclip";
+          description = "Where the commit agent records a new company's id, shown in its issue.";
+        };
         commitCommand = mkOption {
           type = types.str;
           default = "git -C <library> add -A . && git -C <library> commit -m <message>";

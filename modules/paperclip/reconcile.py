@@ -10,7 +10,8 @@ printed with "would"; in mode "enforce" changes are applied. Every pass is idemp
 Per company (declared ones are created when missing, under their issue prefix and then renamed,
 which keeps the prefix on a self-hosted instance):
   * name, description, hire approval; a default local_encrypted secrets vault;
-  * the managed-skill directory as a link to the one library, and the library listing;
+  * the library listing, for companies whose id is declared (only those have the library
+    bind-mounted as their managed-skill directory);
   * agents: hired and approved when missing, then kept to their declared title, role, manager,
     adapter keys, permissions, heartbeat, Paperclip skills and instructions;
   * every agent, declared or not, kept to agentDefaults for its adapter type;
@@ -19,7 +20,8 @@ which keeps the prefix on a self-hosted instance):
 Attention: problems nobody should have to go looking for become ONE issue each on the board of
 the attention company, updated while they last and closed when they are gone: sign-ins that
 have lapsed, agents bound to an AI connection, and skill changes waiting to be committed (that
-issue is assigned to the commit agent). Never touched: tasks, runs and history.
+issue is assigned to the commit agent), plus companies whose id is not declared yet (also the
+commit agent's, who records it). Never touched: tasks, runs and history.
 """
 import hashlib
 import hmac
@@ -118,24 +120,6 @@ def reconcile_company(key, company, spec):
 
 
 # ── skills ───────────────────────────────────────────────────────────────────────────────────
-def link_skill_dir(company, key, attention):
-    path = f"{DESIRED['skills']['root']}/{company}"
-    mount = DESIRED["skills"]["mount"]
-    if os.path.islink(path):
-        if os.readlink(path) != mount:
-            change(key, "relink the managed-skill directory", lambda: (os.unlink(path), os.symlink(mount, path)))
-        return True
-    if os.path.isdir(path):
-        try:
-            os.rmdir(path)
-        except OSError:
-            attention["board"].append(f"`{path}` is a real directory with content, not a link to the skill library; move its content and remove it.")
-            return False
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    change(key, "link the managed-skill directory to the library", lambda: os.symlink(mount, path))
-    return ENFORCE
-
-
 def reconcile_skills(key, company):
     library = DESIRED["skills"]["library"]
     prefix = f"{DESIRED['skills']['root']}/{company}/"
@@ -355,23 +339,30 @@ def report_attention(ids, attention):
                 f"Repository `{repo}`, library `{rel}`:\n\n```\n" + "\n".join(changed[:50]) + "\n```\n\n"
                 f"Commit with: `{target['commitCommand']}`")
     upsert_issue(key, company, f"{ATTENTION_TAG} Commit skill changes", body, assignee)
+    declare = attention["declare"]
+    upsert_issue(key, company, f"{ATTENTION_TAG} Record new company ids", None if not declare else
+                 "These companies exist in Paperclip but their id is not declared yet, so the skill library is not "
+                 f"mounted for them. Record each id in {target['declarationHint']} and land the change the usual way; "
+                 "this issue closes itself once the declaration carries them.\n\n"
+                 + "\n".join(f"- `{k}` ({name}): `id = \"{cid}\";`" for k, name, cid in declare), assignee)
 
 
 def main():
     failed = False
-    attention = {"board": []}
+    attention = {"board": [], "declare": []}
     try:
         ids, live = resolve_companies()
     except Exception as err:
         print(f"[*] listing companies failed: {err}", flush=True)
         return 1
-    for company in live:
-        link_skill_dir(company["id"], company.get("issuePrefix") or company["id"], attention)
     for key, spec in sorted(DESIRED["companies"].items()):
         company = ids.get(key)
         if not company:
             continue
-        for step in (lambda: reconcile_company(key, company, spec), lambda: reconcile_skills(key, company),
+        if not spec.get("id"):
+            attention["declare"].append((key, spec["name"], company))
+        skills = (lambda: reconcile_skills(key, company)) if spec.get("id") else (lambda: None)
+        for step in (lambda: reconcile_company(key, company, spec), skills,
                      lambda: reconcile_agents(key, company, spec, attention), lambda: reconcile_connections(key, company, spec),
                      lambda: reconcile_secrets(key, company, spec)):
             try:

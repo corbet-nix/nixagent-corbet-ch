@@ -30,10 +30,6 @@ let
 
   home = cfg.home.path;
   skillsRoot = "${home}/instances/default/skills";
-  # The one library, mounted once. Every company's managed-skill directory is a symlink to it:
-  # Paperclip realpath()s both its managed root and an import source, so the symlink passes its
-  # boundary check, and a company created at any time needs no new mount.
-  libraryMount = "/srv/skills-library";
   cliPrefix = "${home}/.local/cli";
   dotfilesDir = "/etc/paperclip/home";
   reconcilerDir = "/etc/paperclip/reconciler";
@@ -86,13 +82,14 @@ let
       if [ -e "$2" ] && [ ! -L "$2" ]; then echo "refusing to replace real path $2" >&2; exit 1; fi
       ln -sfn "$1" "$2"
     }
-    mkdir -p ${home}/.claude ${skillsRoot}
-    # Every company's managed-skill directory is a link to the one library. An empty real
-    # directory there (a company Paperclip just created, or an old per-company mountpoint) is
-    # replaced; one with content is left alone and reported by the reconciler.
-    for dir in ${lib.concatMapStringsSep " " (id: "${skillsRoot}/${id}") declaredIds} ${skillsRoot}/*; do
-      [ -e "$dir" ] || [ -L "$dir" ] || { ln -s ${libraryMount} "$dir"; continue; }
-      if [ -d "$dir" ] && [ ! -L "$dir" ] && rmdir "$dir" 2>/dev/null; then ln -s ${libraryMount} "$dir"; fi
+    mkdir -p ${home}/.claude
+    # Every declared company's managed-skill directory is a bind mount of the one library. It must
+    # be a real directory: Paperclip's runtime skill cache refuses a symlinked root (an earlier
+    # symlink layout is undone here). The mountpoints are made as the pod user so the kubelet does
+    # not leave root-owned placeholders in the home.
+    for dir in ${lib.concatMapStringsSep " " (id: "${skillsRoot}/${id}") declaredIds}; do
+      if [ -L "$dir" ]; then rm -f "$dir"; fi
+      mkdir -p "$dir"
     done
     link ${cfg.brain.root} ${home}/agents
     link ${dotfilesDir}/claude-settings.json ${home}/.claude/settings.json
@@ -117,7 +114,7 @@ let
     api = "http://127.0.0.1:${toString cfg.port}/api";
     inherit (cfg) host;
     inherit (cfg.reconciler) mode;
-    skills = { library = cfg.brain.skills; root = skillsRoot; mount = libraryMount; };
+    skills = { library = cfg.brain.skills; root = skillsRoot; };
     inherit (cfg) agentDefaults;
     attention = cfg.reconciler.attention;
     companies = lib.mapAttrs
@@ -142,8 +139,8 @@ let
     done
   '';
 
-  volumeMounts = {
-    skills-library = { name = "brain-skills"; mountPath = libraryMount; };
+  volumeMounts = lib.listToAttrs
+    (map (id: lib.nameValuePair "skills-${id}" { name = "brain-skills"; mountPath = "${skillsRoot}/${id}"; }) declaredIds) // {
     home = { name = "home"; mountPath = home; };
     brain = { name = "brain"; mountPath = cfg.brain.root; };
     dotfiles = { name = "dotfiles"; mountPath = dotfilesDir; readOnly = true; };
