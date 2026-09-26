@@ -16,6 +16,7 @@ which keeps the prefix on a self-hosted instance):
     adapter keys, permissions, heartbeat, Paperclip skills and instructions, and moved to their
     fallback adapter while their provider's quota is scarce (failover.py);
   * every agent, declared or not, kept to agentDefaults for its adapter type;
+  * projects with a repo-only workspace (projects.py), created when missing;
   * API-key tool connections (created when missing, their credential rotated when its value
     changes) and company secrets (created, rotated when their value changes); an HMAC in the
     secret's providerMetadata detects change without reading values back.
@@ -30,6 +31,7 @@ import sys
 from api import DESIRED
 from attention import check_logins, check_uncommitted_skills, report_attention
 from credentials import reconcile_connections, reconcile_secrets
+from projects import reconcile_projects
 from org import ordered_agents, quota_usage, reconcile_agents, reconcile_company, reconcile_skills, resolve_companies  # noqa: F401 (ordered_agents: checks)
 
 
@@ -51,7 +53,8 @@ def main():
             attention["declare"].append((key, spec["name"], company))
         skills = (lambda: reconcile_skills(key, company)) if spec.get("id") else (lambda: None)
         for step in (lambda: reconcile_company(key, company, spec), skills,
-                     lambda: reconcile_agents(key, company, spec, attention, usage), lambda: reconcile_connections(key, company, spec),
+                     lambda: reconcile_agents(key, company, spec, attention, usage), lambda: reconcile_projects(key, company, spec),
+                     lambda: reconcile_connections(key, company, spec),
                      lambda: reconcile_secrets(key, company, spec)):
             try:
                 step()

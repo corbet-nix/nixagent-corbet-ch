@@ -119,7 +119,7 @@ let
     attention = cfg.reconciler.attention;
     companies = lib.mapAttrs
       (_: c: {
-        inherit (c) id name description issuePrefix requireBoardApprovalForNewAgents connections secrets;
+        inherit (c) id name description issuePrefix requireBoardApprovalForNewAgents connections secrets projects;
         agents = lib.mapAttrs (_: a: removeAttrs a [ "_module" ]) c.agents;
       })
       cfg.companies;
@@ -159,7 +159,7 @@ in
         configMaps."${cfg.appName}-dotfiles".data = dotfiles;
         configMaps."${cfg.appName}-reconciler".data = {
           "desired.json" = builtins.toJSON desired;
-        } // lib.genAttrs [ "reconcile.py" "api.py" "org.py" "failover.py" "credentials.py" "attention.py" ]
+        } // lib.genAttrs [ "reconcile.py" "api.py" "org.py" "failover.py" "credentials.py" "attention.py" "projects.py" ]
           (file: builtins.readFile (./. + "/${file}"));
 
         deployments.${cfg.appName}.spec = {

@@ -53,6 +53,17 @@ let
     };
   };
 
+  projectType = types.submodule {
+    options = {
+      name = mkOption { type = types.str; description = "Display name; the reconciler matches projects by it."; };
+      description = mkOption { type = types.nullOr types.str; default = null; };
+      repoUrl = mkOption { type = types.str; example = "https://github.com/example/app"; description = "Repo-only workspace: Paperclip clones it on demand (private GitHub repos with the company's GH_TOKEN secret)."; };
+      defaultRef = mkOption { type = types.str; default = "main"; };
+      lead = mkOption { type = types.nullOr types.str; default = null; description = "Key of the lead agent in the same company."; };
+      isolated = mkOption { type = types.bool; default = true; description = "Every task in its own git worktree and branch, which fits landing work as pull requests."; };
+    };
+  };
+
   secretType = types.submodule {
     options = {
       env = mkOption { type = types.str; description = "Reconciler environment variable holding the value (see reconciler.secretEnv)."; };
@@ -85,6 +96,11 @@ let
       requireBoardApprovalForNewAgents = mkOption { type = types.bool; default = true; };
       agents = mkOption { type = types.attrsOf agentType; default = { }; };
       connections = mkOption { type = types.attrsOf connectionType; default = { }; };
+      projects = mkOption {
+        type = types.attrsOf projectType;
+        default = { };
+        description = "Projects the reconciler creates when missing and keeps described and led; projects created in the UI or by agents are only reported.";
+      };
       secrets = mkOption {
         type = types.attrsOf secretType;
         default = { };

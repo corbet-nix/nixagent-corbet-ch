@@ -55,6 +55,7 @@
         instructions = "You implement issues assigned to you.";
       };
       secrets.GH_TOKEN = { env = "EXAMPLE_GITHUB_TOKEN"; description = "Clones private repositories."; };
+      projects.app = { name = "App"; repoUrl = "https://github.com/example/app"; lead = "lead"; };
       connections.github = {
         name = "GitHub";
         gallery = "github";
