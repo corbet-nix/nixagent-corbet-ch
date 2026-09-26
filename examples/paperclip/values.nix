@@ -30,8 +30,11 @@
     secretEnvFrom = [ "paperclip-secrets" ];
     reconciler = {
       boardSecret.name = "paperclip-board";
+      attention = { company = "engineering"; commitAgent = "lead"; };
       secretEnv.EXAMPLE_GITHUB_TOKEN = { name = "paperclip-board"; key = "GITHUB_TOKEN"; };
     };
+    # A company without an id is created by the reconciler under its prefix, then renamed.
+    companies.office = { name = "Example Office"; issuePrefix = "OFF"; };
     companies.engineering = {
       id = "00000000-0000-0000-0000-000000000001";
       name = "Example Engineering";
@@ -50,6 +53,7 @@
         adapterConfig.model = "opencode-go/example-model";
         instructions = "You implement issues assigned to you.";
       };
+      secrets.GH_TOKEN = { env = "EXAMPLE_GITHUB_TOKEN"; description = "Clones private repositories."; };
       connections.github = {
         name = "GitHub";
         gallery = "github";

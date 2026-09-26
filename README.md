@@ -323,7 +323,12 @@ AI logins, which give each run a throwaway home), wired to the shared knowledge 
 `lib.brain` — the same snippets `nixagent.brain` runs on every host. Each company's managed-skill
 directory is a read-write bind mount of the one skill library, so skills created in Paperclip land
 in the library and library edits reach the next run; the reconciler keeps each company's listing
-current. Two traps it encodes: Claude agents want `adapterConfig.engine = "cli"` (the default ACP
+current. Nothing needs a hand-off: a company declared without an id is created (under its issue
+prefix, then renamed, which keeps the prefix), gets a secrets vault, its skill directory linked,
+its connections and company secrets; `agentDefaults` hold every agent to per-adapter settings,
+hired at run time or not; and problems only a person can fix (a lapsed sign-in, an agent bound to
+an AI connection, skill changes waiting to be committed) become one self-updating, self-closing
+issue each on the attention company's board. Two traps it encodes: Claude agents want `adapterConfig.engine = "cli"` (the default ACP
 engine does not load the home's skills), and Paperclip refuses any `Host` but its own, so probes
 and the reconciler send it. `examples/paperclip/values.nix` shows every option;
 `checks.paperclip-renders` renders it.
