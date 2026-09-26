@@ -160,7 +160,7 @@ in
         configMaps."${cfg.appName}-reconciler".data = {
           "desired.json" = builtins.toJSON desired;
         } // lib.genAttrs [ "reconcile.py" "api.py" "org.py" "failover.py" "credentials.py" "attention.py" ]
-          (file: builtins.readFile (./. + "/${file}")) // { };
+          (file: builtins.readFile (./. + "/${file}"));
 
         deployments.${cfg.appName}.spec = {
           replicas = 1;

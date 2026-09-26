@@ -329,7 +329,10 @@ secrets, while its id goes to the commit agent as an issue to record (the librar
 per declared id: Paperclip's runtime skill cache refuses a symlinked skill root); `agentDefaults` hold every agent to per-adapter settings,
 hired at run time or not; and problems only a person can fix (a lapsed sign-in, an agent bound to
 an AI connection, skill changes waiting to be committed) become one self-updating, self-closing
-issue each on the attention company's board. Two traps it encodes: Claude agents want `adapterConfig.engine = "cli"` (the default ACP
+issue each on the attention company's board. An agent may declare a `fallback` adapter: while its
+provider's subscription quota is scarce (`quotaFailover.switchAt`, read from Paperclip's own quota
+windows) the reconciler moves it to the fallback and back once the quota recovers — Paperclip
+itself only waits a quota window out. Two traps it encodes: Claude agents want `adapterConfig.engine = "cli"` (the default ACP
 engine does not load the home's skills), and Paperclip refuses any `Host` but its own, so probes
 and the reconciler send it. `examples/paperclip/values.nix` shows every option;
 `checks.paperclip-renders` renders it.
