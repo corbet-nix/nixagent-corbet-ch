@@ -309,6 +309,25 @@ Containers without home-manager (an agent-orchestration pod running vendor image
 wiring through `lib.brain` (`all`, `skillsOnly`, `claude`, `agents`, `codex`), which returns plain
 POSIX sh with no store paths. `checks/brain-links.nix` runs it against a scratch home.
 
+## Paperclip: an agent company, declared
+
+`nixidyModules.paperclip` (`nixagent.paperclip`) renders a [Paperclip](https://github.com/paperclipai/paperclip)
+server for Argo CD **and** the organisation it runs: companies, agents (role, manager, adapter,
+model, instructions), and API-key tool connections. A reconciler sidecar keeps the live instance
+matching the declaration through Paperclip's API: **declared is enforced, undeclared is reported**,
+so agents may still hire and the declaration catches up by a human decision. `reconciler.mode =
+"report"` writes nothing and prints every intended change.
+
+The pod is the agents' workstation. Every agent runs on the pod's real home (no Paperclip-managed
+AI logins, which give each run a throwaway home), wired to the shared knowledge store through
+`lib.brain` — the same snippets `nixagent.brain` runs on every host. Each company's managed-skill
+directory is a read-write bind mount of the one skill library, so skills created in Paperclip land
+in the library and library edits reach the next run; the reconciler keeps each company's listing
+current. Two traps it encodes: Claude agents want `adapterConfig.engine = "cli"` (the default ACP
+engine does not load the home's skills), and Paperclip refuses any `Host` but its own, so probes
+and the reconciler send it. `examples/paperclip/values.nix` shows every option;
+`checks.paperclip-renders` renders it.
+
 ## What this does not own
 
 - **Configuration of the agents themselves** — API keys, model choice, MCP servers, permission

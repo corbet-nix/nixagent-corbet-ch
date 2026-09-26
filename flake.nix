@@ -12,9 +12,17 @@
     # backend here, on purpose), so this input exists purely to give `nix flake check` a `lib` and
     # a derivation shell to hang the eval-time assertions on.
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
+    # nixidy renders modules/paperclip to Argo CD manifests. A real input, not just a name in a
+    # comment: without it there is no module system to render `nixidyModules.paperclip` against,
+    # and the render check would pass by checking nothing. Consumers make it follow their own.
+    nixidy = {
+      url = "github:arnarg/nixidy";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs }:
+  outputs = { self, nixpkgs, nixidy }:
     let
       forAllSystems = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ];
       pkgsFor = system: nixpkgs.legacyPackages.${system};
@@ -45,6 +53,11 @@
       # agent client of a home. `lib.brain` carries the same snippets for containers without
       # home-manager (an agent-orchestration pod). See lib/brain.nix and modules/brain-home.nix.
       homeManagerModules.brain = ./modules/brain-home.nix;
+
+      # A Paperclip agent company, declared: the server's deployment wired to the same brain as
+      # every host, and its organisation (companies, agents, connections) kept by a reconciler.
+      # See modules/paperclip/default.nix.
+      nixidyModules.paperclip = ./modules/paperclip;
       homeManagerModules.nixagent = ./modules/home.nix;
       homeManagerModules.home = ./modules/home.nix;
       homeManagerModules.default = ./modules/home.nix;
@@ -79,6 +92,30 @@
         cfetch-home-eval = import ./checks/cfetch-home-eval.nix { pkgs = pkgsFor system; };
         brain-links = import ./checks/brain-links.nix { pkgs = pkgsFor system; };
         brain-home-eval = import ./checks/brain-home-eval.nix { pkgs = pkgsFor system; };
+        # The reconciler at least compiles and its manager-first ordering holds; driving it
+        # against a live Paperclip is the consumer's report-mode pass.
+        paperclip-reconciler = (pkgsFor system).runCommand "nixagent-paperclip-reconciler"
+          { nativeBuildInputs = [ (pkgsFor system).python3 ]; } ''
+          cp ${./modules/paperclip/reconcile.py} reconcile.py
+          python3 -m py_compile reconcile.py
+          echo '{"api":"x","host":"x","mode":"report","skills":{},"companies":{}}' > desired.json
+          NIXAGENT_PAPERCLIP_DESIRED=desired.json PAPERCLIP_BOARD_TOKEN=x python3 -c '
+          import reconcile as r
+          order = r.ordered_agents({"c": {"reportsTo": "b"}, "b": {"reportsTo": "a"}, "a": {}})
+          assert order == ["a", "b", "c"], order
+          try:
+              r.ordered_agents({"a": {"reportsTo": "b"}, "b": {"reportsTo": "a"}})
+              raise SystemExit("cycle not detected")
+          except RuntimeError:
+              pass
+          '
+          echo ok > $out
+        '';
+        # Renders modules/paperclip against the real module system from examples/paperclip.
+        paperclip-renders = (nixidy.lib.mkEnv {
+          pkgs = pkgsFor system;
+          modules = [ ./modules/paperclip ./examples/paperclip/values.nix ];
+        }).environmentPackage;
         home-eval = import ./checks/home-eval.nix { pkgs = pkgsFor system; };
         upstream-install = import ./checks/upstream-install.nix { pkgs = pkgsFor system; };
       });
