@@ -41,6 +41,10 @@
       # against an upstream 17.2.12 on 2026-08-10, both flagged out of date). Independent of the
       # system plane above: a consumer picks per host, and neither is forced.
       homeManagerModules.cfetch = ./modules/cfetch-home.nix;
+      # The brain: one shared knowledge store -- above all ONE skill library -- wired into every
+      # agent client of a home. `lib.brain` carries the same snippets for containers without
+      # home-manager (an agent-orchestration pod). See lib/brain.nix and modules/brain-home.nix.
+      homeManagerModules.brain = ./modules/brain-home.nix;
       homeManagerModules.nixagent = ./modules/home.nix;
       homeManagerModules.home = ./modules/home.nix;
       homeManagerModules.default = ./modules/home.nix;
@@ -59,6 +63,7 @@
       # `lib.policy`/`lib.catalogue` pair.
       lib.policy = ./modules/nixagent.nix;
       lib.catalogue = import ./lib/agents.nix { };
+      lib.brain = import ./lib/brain.nix;
 
       # `nix flake check` does not evaluate `systemManagerModules` or `homeManagerModules` on its
       # own, so a green check on this repo without these files would cover nothing but flake
@@ -72,6 +77,8 @@
       checks = forAllSystems (system: {
         agents-eval = import ./checks/agents-eval.nix { pkgs = pkgsFor system; };
         cfetch-home-eval = import ./checks/cfetch-home-eval.nix { pkgs = pkgsFor system; };
+        brain-links = import ./checks/brain-links.nix { pkgs = pkgsFor system; };
+        brain-home-eval = import ./checks/brain-home-eval.nix { pkgs = pkgsFor system; };
         home-eval = import ./checks/home-eval.nix { pkgs = pkgsFor system; };
         upstream-install = import ./checks/upstream-install.nix { pkgs = pkgsFor system; };
       });

@@ -280,6 +280,35 @@ OpenAI's and never served the installer; the real one is in the project README a
 here for four days. When an entry blocks a host, check the vendor's own documented command before
 concluding the vendor ships nothing.
 
+## The brain: one knowledge store, one skill library, every client
+
+`nixagent.brain` (`homeManagerModules.brain`) connects every agent client in a home to ONE shared
+knowledge store. Above all it wires ONE skill library into every client, by reference and never
+by copy, so a skill edited in the store is the skill every client loads:
+
+```nix
+nixagent.brain = {
+  enable = true;
+  skills = "/home/alice/brain/skills";          # <name>/SKILL.md, the one library
+  claude.instructions = "@~/brain/AGENTS.md";   # ~/.claude/CLAUDE.md
+  claude.memoryDir = "/home/alice/brain/memory/$(uname -n)";
+  codex.instructions = builtins.readFile ./codex-agents.md;  # ~/.codex/AGENTS.md
+  # refresh = "5min";  # user timer re-linking the library; null disables it
+};
+```
+
+Where each client reads skills was measured with a probe skill (2026-09-26): Claude Code reads
+`~/.claude/skills` only; Codex, opencode and Grok Build read the tool-neutral `~/.agents/skills`
+from the home. Every library skill is linked into both, **one link per skill**: both folders also
+hold content the tools install themselves (Claude Code's `synced/` account skills, other tools'
+own skills), which a whole-folder link would pour into the shared library. Real directories are
+never touched, links to deleted skills are pruned, and Codex's own duplicate links into the
+library are removed. The timer carries new and deleted skills to every client within `refresh`.
+
+Containers without home-manager (an agent-orchestration pod running vendor images) use the same
+wiring through `lib.brain` (`all`, `skillsOnly`, `claude`, `agents`, `codex`), which returns plain
+POSIX sh with no store paths. `checks/brain-links.nix` runs it against a scratch home.
+
 ## What this does not own
 
 - **Configuration of the agents themselves** — API keys, model choice, MCP servers, permission
