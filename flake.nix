@@ -96,9 +96,9 @@
         # against a live Paperclip is the consumer's report-mode pass.
         paperclip-reconciler = (pkgsFor system).runCommand "nixagent-paperclip-reconciler"
           { nativeBuildInputs = [ (pkgsFor system).python3 ]; } ''
-          cp ${./modules/paperclip/reconcile.py} reconcile.py
-          python3 -m py_compile reconcile.py
-          echo '{"api":"x","host":"x","mode":"report","skills":{},"companies":{}}' > desired.json
+          cp ${./modules/paperclip}/*.py .
+          python3 -m py_compile *.py
+          echo '{"api":"x","host":"x","mode":"report","skills":{},"companies":{},"agentDefaults":{},"quotaFailover":{"switchAt":90,"switchBackBelow":60}}' > desired.json
           NIXAGENT_PAPERCLIP_DESIRED=desired.json PAPERCLIP_BOARD_TOKEN=x python3 -c '
           import reconcile as r
           order = r.ordered_agents({"c": {"reportsTo": "b"}, "b": {"reportsTo": "a"}, "a": {}})
@@ -108,6 +108,14 @@
               raise SystemExit("cycle not detected")
           except RuntimeError:
               pass
+          import failover as f
+          want = {"adapterType": "claude_local", "fallback": {"adapterType": "codex_local"}}
+          assert f.adapter_for(want, "claude_local", {"anthropic": 95, "openai": 10}) == "codex_local"
+          assert f.adapter_for(want, "claude_local", {"anthropic": 95, "openai": 95}) == "claude_local"
+          assert f.adapter_for(want, "claude_local", {}) == "claude_local"
+          assert f.adapter_for(want, "codex_local", {"anthropic": 70, "openai": 10}) == "codex_local"
+          assert f.adapter_for(want, "codex_local", {"anthropic": 40, "openai": 10}) == "claude_local"
+          assert f.adapter_for({"adapterType": "claude_local"}, "claude_local", {"anthropic": 99}) == "claude_local"
           '
           echo ok > $out
         '';

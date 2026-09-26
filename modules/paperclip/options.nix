@@ -25,6 +25,21 @@ let
       };
       permissions = mkOption { type = types.attrsOf types.bool; default = { }; };
       heartbeat = mkOption { type = types.attrsOf types.anything; default = { enabled = false; wakeOnDemand = true; }; };
+      fallback = mkOption {
+        type = types.nullOr (types.submodule {
+          options = {
+            adapterType = mkOption { type = types.enum [ "claude_local" "codex_local" "opencode_local" "grok_local" "gemini_local" "cursor_local" "pi_local" "kimi_local" ]; };
+            adapterConfig = mkOption { type = types.attrsOf types.anything; default = { }; };
+          };
+        });
+        default = null;
+        description = ''
+          A second adapter the reconciler switches the agent to while its own provider's
+          subscription quota is scarce (see quotaFailover), and back once it recovers.
+          Instructions and the brain's skills are the same for both, so the agent's work
+          carries on.
+        '';
+      };
     };
   };
 
@@ -137,6 +152,11 @@ in
         time. The default puts Claude agents on the CLI engine, because the ACP engine (Claude
         Agent SDK) does not load the home's skills.
       '';
+    };
+
+    quotaFailover = {
+      switchAt = mkOption { type = types.ints.between 1 100; default = 90; description = "Switch an agent to its fallback when its provider's busiest quota window reaches this percentage (and the fallback's is below it)."; };
+      switchBackBelow = mkOption { type = types.ints.between 0 100; default = 60; description = "Switch back once the primary provider's busiest window is below this percentage."; };
     };
 
     reconciler = {

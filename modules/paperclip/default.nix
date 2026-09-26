@@ -115,7 +115,7 @@ let
     inherit (cfg) host;
     inherit (cfg.reconciler) mode;
     skills = { library = cfg.brain.skills; root = skillsRoot; };
-    inherit (cfg) agentDefaults;
+    inherit (cfg) agentDefaults quotaFailover;
     attention = cfg.reconciler.attention;
     companies = lib.mapAttrs
       (_: c: {
@@ -159,8 +159,8 @@ in
         configMaps."${cfg.appName}-dotfiles".data = dotfiles;
         configMaps."${cfg.appName}-reconciler".data = {
           "desired.json" = builtins.toJSON desired;
-          "reconcile.py" = builtins.readFile ./reconcile.py;
-        };
+        } // lib.genAttrs [ "reconcile.py" "api.py" "org.py" "failover.py" "credentials.py" "attention.py" ]
+          (file: builtins.readFile (./. + "/${file}")) // { };
 
         deployments.${cfg.appName}.spec = {
           replicas = 1;
